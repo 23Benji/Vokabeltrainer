@@ -1,0 +1,6 @@
+Haus; house; 0
+Strauch; shrub; 1
+Zaun; fence; 0
+Garten; Garden; 1
+Ziegel; brick; 2
+Schornstein; chimney; 1
