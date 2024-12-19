@@ -10,43 +10,50 @@ import java.awt.*;
 public class HomePanel extends JPanel {
 
     JLabel languageLabel;
-    JButton upButton, downButton, startButton,modifyButton;
-    public int LernKarteiCounter = 1;
+    JButton upButton, downButton, startButton,modifyButton, settingsButton;
     private Image backgroundImage;
     private MainFrame mainFrame ;
 
 
 
     public HomePanel(MainFrame mainFrame) {
+
         this.mainFrame = mainFrame;
 
         // Set up the panel properties
         setLayout(null); // No layout manager
         backgroundImage = new ImageIcon("images/Bgd2.jpg").getImage();
 
-        // Arrow icons
-        ImageIcon upArrow = new ImageIcon("icons/up_arrow.png");   // Replace with your image path
-        ImageIcon downArrow = new ImageIcon("icons/down_arrow.png");
+
+        // Settings button
+        settingsButton = new JButton(new ImageIcon("icons/settings.png")); // Replace with your settings icon path
+        settingsButton.setBorderPainted(false);
+        settingsButton.setContentAreaFilled(false);
+        settingsButton.setFocusPainted(false);
+        settingsButton.setBounds(730, 10, 50, 50); // Top-right corner
+        settingsButton.addActionListener(e -> {
+            mainFrame.switchToSettingPanel();
+        });
+        add(settingsButton);
+
 
         // Up arrow button
-        upButton = new JButton(upArrow);
+        upButton = new JButton(new ImageIcon("icons/up_arrow.png"));
         upButton.setBorderPainted(false);
         upButton.setFocusPainted(false);
         upButton.setContentAreaFilled(false);
         upButton.setBounds(213, 70, 64, 64); // Position and size (x, y, width, height)
         upButton.addActionListener(e -> {
-            System.out.println("Up button was pressed!");
-            System.out.println("Lern Kartei: " + LernKarteiCounter);
-            LernKarteiCounter++;
-            if (LernKarteiCounter > VokabeltrainerDB.getLernkarteien().size()) {
-                LernKarteiCounter = 1;
+            mainFrame.setLernKarteiNummer(mainFrame.getLernKarteiNummer()+1);
+            if (mainFrame.getLernKarteiNummer() > VokabeltrainerDB.getLernkarteien().size()) {
+                mainFrame.setLernKarteiNummer(1);
             }
-            languageLabel.setText(VokabeltrainerDB.getLernkartei(LernKarteiCounter).toString());
+            languageLabel.setText(VokabeltrainerDB.getLernkartei(mainFrame.getLernKarteiNummer()).toString());
         });
         add(upButton);
 
         // Language label
-        languageLabel = new JLabel(VokabeltrainerDB.getLernkartei(LernKarteiCounter).toString(), JLabel.CENTER);
+        languageLabel = new JLabel(VokabeltrainerDB.getLernkartei(mainFrame.getLernKarteiNummer()).toString(), JLabel.CENTER);
         languageLabel.setFont(new Font("Roboto", Font.BOLD, 30)); // Cool, modern font
         languageLabel.setOpaque(true);
         languageLabel.setBackground(new Color(177, 194, 158));
@@ -55,18 +62,17 @@ public class HomePanel extends JPanel {
         add(languageLabel);
 
         // Down arrow button
-        downButton = new JButton(downArrow);
+        downButton = new JButton(new ImageIcon("icons/down_arrow.png"));
         downButton.setBorderPainted(false);
         downButton.setFocusPainted(false);
         downButton.setContentAreaFilled(false);
         downButton.setBounds(213, 375, 64, 64); // Position and size
         downButton.addActionListener(e -> {
-            System.out.println("Down button was pressed!");
-            LernKarteiCounter--;
-            if (LernKarteiCounter < 1) {
-                LernKarteiCounter = VokabeltrainerDB.getLernkarteien().size();
+            mainFrame.setLernKarteiNummer(mainFrame.getLernKarteiNummer()-1);
+            if (mainFrame.getLernKarteiNummer() < 1) {
+                mainFrame.setLernKarteiNummer(VokabeltrainerDB.getLernkarteien().size());
             }
-            languageLabel.setText(VokabeltrainerDB.getLernkartei(LernKarteiCounter).toString());
+            languageLabel.setText(VokabeltrainerDB.getLernkartei(mainFrame.getLernKarteiNummer()).toString());
 
         });
         add(upButton);
@@ -78,8 +84,7 @@ public class HomePanel extends JPanel {
         startButton.setForeground(Color.black);
         startButton.setBounds(520, 180, 200, 55); // Position and size
         startButton.addActionListener(e -> {
-            System.out.println("Start button was pressed!");
-            mainFrame.switchToFachPanel(LernKarteiCounter);
+            mainFrame.switchToFachPanel();
         });
         add(startButton);
 
@@ -90,7 +95,6 @@ public class HomePanel extends JPanel {
         modifyButton.setBounds(520, 260, 200, 55); // Position and size
 
         modifyButton.addActionListener(e -> {
-            System.out.println("Modify button was pressed!");
         });
         add(modifyButton);
 

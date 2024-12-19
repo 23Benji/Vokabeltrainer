@@ -1,30 +1,36 @@
 package net.tfobz.vokabeltrainer.model.panels;
 
 import net.tfobz.vokabeltrainer.model.Fach;
+import net.tfobz.vokabeltrainer.model.Karte;
 import net.tfobz.vokabeltrainer.model.MainFrame;
+import net.tfobz.vokabeltrainer.model.VokabeltrainerDB;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FachPanel extends JPanel {
     MainFrame mainFrame;
     private JButton homeButton, leftArrow, rightArrow;
     private JLabel headingLabel;
     private JButton[] subjectButtons;
-    int LernKarteiNumber;
-    int FachPage = 1;
+    private LanguageDirectionDialog languageDirectionDialog;
+    private int FachPage = 1;
 
 
-    public FachPanel(MainFrame mainFrame, int LernKarteiNumber) {
+    public FachPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
-        this.LernKarteiNumber = LernKarteiNumber;
 
         setLayout(null); // No layout manager for custom positioning
-        setBackground(new Color(101, 146, 135));
+        setBackground(new Color(58, 78, 66)); // Background color from image
 
         // Heading Label
-        headingLabel = new JLabel("Wähle ein Fach aus...", SwingConstants.CENTER);
+        headingLabel = new JLabel("Select a compartment", SwingConstants.CENTER);
         headingLabel.setFont(new Font("Roboto", Font.BOLD, 40)); // Cool, modern font
         headingLabel.setForeground(Color.white);
         headingLabel.setBounds(0, 20, 800, 40);
@@ -69,15 +75,20 @@ public class FachPanel extends JPanel {
         subjectButtons = new JButton[6];
         printFaecher(FachPage);
 
+
     }
 
     // Method to create a button for each "Fach"
-    private JButton createSubjectButton(String fachLabel, String cardsLabel) {
-        JButton button = new JButton(fachLabel + "\n" + cardsLabel);
+    private JButton createSubjectButton(String fachLabel, int index) {
+        JButton button = new JButton(fachLabel);
         button.setBackground(new Color(39, 85, 107)); // Darker blue color
         button.setFont(new Font("Roboto", Font.BOLD, 18));
         button.setForeground(Color.white);
         button.setFocusPainted(false); // No focus border
+        button.addActionListener(e -> {
+            System.out.println(index);
+            new LanguageDirectionDialog(index);
+        });
         return button;
     }
 
@@ -91,30 +102,110 @@ public class FachPanel extends JPanel {
         add(leftArrow);
         add(rightArrow);
 
+        // Fetch and cache the Faecher and Karten data to avoid multiple method calls
+        int lernKarteiNummer = mainFrame.getLernKarteiNummer();
+        List<Fach> facherList = VokabeltrainerDB.getFaecher(lernKarteiNummer);
+        Map<Integer, List<Karte>> kartenByFachMap = new HashMap<>();
+
+        // Populate Karten map by fetching once for all needed Faecher
+        for (int i = 1; i <= 6; i++) {
+            int fachNummer = i + (page - 1) * 6;
+            kartenByFachMap.put(fachNummer, VokabeltrainerDB.getKarten(fachNummer));
+        }
+
         // Update buttons for subjects
         int xOffset = 100, yOffset = 150;
         int buttonWidth = 175, buttonHeight = 120; // Size of each button
         int buttonSpacing = 20; // Space between buttons
 
-        for (int i = 0; i < 3; i++) {
-            subjectButtons[i] = createSubjectButton("Fach " + ((i + 1) + (page - 1) * 6), " X Karten");
-            subjectButtons[i].setBounds(xOffset, yOffset, buttonWidth, buttonHeight);
-            add(subjectButtons[i]);
-            xOffset += buttonWidth + buttonSpacing; // Move to next position
-        }
+        for (int i = 1; i <= 6; i++) {
+            // Calculate dynamic Fach number
+            String fachName = "Fach " + (i + (page - 1) * 6);
+            int fachNummer = i + (page - 1) * 6;
 
-        yOffset += 150; // Move to next row
-        xOffset = 100;
-        for (int i = 3; i < 6; i++) {
-            subjectButtons[i] = createSubjectButton("Fach " + ((i + 1) + (page - 1) * 6), "X Karten");
-            subjectButtons[i].setBounds(xOffset, yOffset, buttonWidth, buttonHeight);
-            add(subjectButtons[i]);
-            xOffset += buttonWidth + buttonSpacing; // Move to next position
+            // Create button
+            subjectButtons[i - 1] = createSubjectButton(fachName, fachNummer);
+
+            // Check if there are any Karten inside the Fach
+            List<Karte> kartenForFach = kartenByFachMap.get(fachNummer);
+            boolean isEmpty = (kartenForFach == null || kartenForFach.isEmpty());
+
+            if (isEmpty) {
+                subjectButtons[i - 1].setEnabled(false);
+            }
+
+            // Set position and add to UI
+            subjectButtons[i - 1].setBounds(xOffset, yOffset, buttonWidth, buttonHeight);
+            add(subjectButtons[i - 1]);
+
+            // Update position
+            xOffset += buttonWidth + buttonSpacing;
+            if (i == 3) { // Move to next row after 3 buttons
+                yOffset += 150;
+                xOffset = 100;
+            }
         }
 
         // Refresh the panel to reflect changes
         revalidate();
         repaint();
+    }
+
+
+    // Inner class for LanguageDirectionDialog JFrame
+    private class LanguageDirectionDialog extends JFrame {
+        private JLabel directionLabel;
+        private JButton swapButton;
+        private JButton startButton;
+
+        public LanguageDirectionDialog(int FachNummer) {
+            // Setup the frame
+            setTitle("Language Direction");
+            setSize(300, 150);
+            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            setLocationRelativeTo(null);
+
+            // Setup the panel layout
+            JPanel panel = new JPanel();
+            panel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
+
+            // Language direction label
+            directionLabel = new JLabel("Deutsch -> Italian");
+            panel.add(directionLabel);
+
+            // Swap button
+            swapButton = new JButton(new ImageIcon("icons/swap.png")); // Replace with actual path
+            swapButton.addActionListener(e -> swapLanguages());
+            panel.add(swapButton);
+
+            // Start button
+            startButton = new JButton("Start");
+            startButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    startQuiz();
+                }
+            });
+            panel.add(startButton);
+
+            this.add(panel);
+            this.setVisible(true);
+        }
+
+        // Method to swap the languages in the label
+        private void swapLanguages() {
+            String currentText = directionLabel.getText();
+            if (currentText.equals("Deutsch -> Italian")) {
+                directionLabel.setText("Italian -> Deutsch");
+            } else {
+                directionLabel.setText("Deutsch -> Italian");
+            }
+        }
+
+        // Method to handle the start quiz action
+        private void startQuiz() {
+            mainFrame.switchToQuizPanel();
+        }
     }
 
 }

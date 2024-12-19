@@ -68,7 +68,7 @@ public class VokabeltrainerDB
 	protected static final String INSERT_LERNKARTEI2 = "INSERT INTO lernkarteien(lbeschreibung, lworteinsbeschreibung, lwortzweibeschreibung, lrichtung, lgrosskleinschreibung) "
 			+ "  VALUES('Deutsch Italienisch','Deutsch','Italienisch',false,true);";
 	protected static final String INSERT_LERNKARTEI3 = "INSERT INTO lernkarteien(lbeschreibung, lworteinsbeschreibung, lwortzweibeschreibung, lrichtung, lgrosskleinschreibung) "
-			+ "  VALUES('Deutsch Franz�sisch','Deutsch','Franz�sisch',false,true);";
+			+ "  VALUES('Deutsch Französisch','Deutsch','Franz�sisch',false,true);";
 	protected static final String INSERT_FACH11 = "INSERT INTO faecher(fbeschreibung, ferinnerung, fgelerntam, lnummer) "
 			+ "  VALUES('Fach 1',0,'" + getActualDate() + "', 1);";
 	protected static final String INSERT_FACH21 = "INSERT INTO faecher(fbeschreibung, ferinnerung, fgelerntam, lnummer) "
@@ -76,14 +76,14 @@ public class VokabeltrainerDB
 	protected static final String INSERT_KARTE111 = "INSERT INTO karten(kworteins, kwortzwei, fnummer) "
 			+ "  VALUES('Haus','house',1);";
 
-//	static {
-//		// L�scht Tabellen
-//		loeschenTabellen();
-//		// Erstellen der Tabellen falls nicht vorhanden
-//		erstellenTabellen();
-//		// Hinzuf�gen von Testdaten
-//		hinzufuegenTestdaten();
-//	}
+	static {
+		// L�scht Tabellen
+		loeschenTabellen();
+		// Erstellen der Tabellen falls nicht vorhanden
+		erstellenTabellen();
+		// Hinzuf�gen von Testdaten
+		hinzufuegenTestdaten();
+	}
 
 	/**
 	 * Die Methode zeigt, wie die Klasse VokabeltrainerDB verwendet werden kann, um auf die
@@ -1261,7 +1261,7 @@ public class VokabeltrainerDB
 	 * Schornstein; chimney; 1<br>
 	 * Hier gibt die dritte Spalte die Zugeh�rigkeit zu den F�chern wieder, welche
 	 * ebenfalls neu angelegt werden. Doppelt vorhandene Karten werden nicht importiert
-	 * @nummerLernkartei
+	 * @param nummerLernkartei
 	 * @param pfad
 	 * @return -1 falls Importierfehler aufgetreten ist<br>
 	 * -2 falls Datei nicht gefunden wurde<br>
