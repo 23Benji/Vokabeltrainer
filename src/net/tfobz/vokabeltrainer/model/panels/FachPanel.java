@@ -102,33 +102,25 @@ public class FachPanel extends JPanel {
         add(leftArrow);
         add(rightArrow);
 
-        // Fetch and cache the Faecher and Karten data to avoid multiple method calls
-        int lernKarteiNummer = mainFrame.getLernKarteiNummer();
-        List<Fach> facherList = VokabeltrainerDB.getFaecher(lernKarteiNummer);
-        Map<Integer, List<Karte>> kartenByFachMap = new HashMap<>();
-
-        // Populate Karten map by fetching once for all needed Faecher
-        for (int i = 1; i <= 6; i++) {
-            int fachNummer = i + (page - 1) * 6;
-            kartenByFachMap.put(fachNummer, VokabeltrainerDB.getKarten(fachNummer));
-        }
-
         // Update buttons for subjects
         int xOffset = 100, yOffset = 150;
         int buttonWidth = 175, buttonHeight = 120; // Size of each button
         int buttonSpacing = 20; // Space between buttons
 
+        // Fetch and cache the Karten list to avoid multiple method calls
+        List<Fach> kartenList = VokabeltrainerDB.getFaecher(mainFrame.getLernKarteiNummer());
+        boolean isEmpty;
+
         for (int i = 1; i <= 6; i++) {
             // Calculate dynamic Fach number
             String fachName = "Fach " + (i + (page - 1) * 6);
-            int fachNummer = i + (page - 1) * 6;
 
             // Create button
-            subjectButtons[i - 1] = createSubjectButton(fachName, fachNummer);
+            subjectButtons[i - 1] = createSubjectButton(fachName, i + (page - 1) * 6);
 
             // Check if there are any Karten inside the Fach
-            List<Karte> kartenForFach = kartenByFachMap.get(fachNummer);
-            boolean isEmpty = (kartenForFach == null || kartenForFach.isEmpty());
+            List<Karte> kartenForFach = VokabeltrainerDB.getKarten(i + (page - 1) * 6);
+            isEmpty = (kartenForFach == null || kartenForFach.isEmpty());
 
             if (isEmpty) {
                 subjectButtons[i - 1].setEnabled(false);
@@ -150,6 +142,7 @@ public class FachPanel extends JPanel {
         revalidate();
         repaint();
     }
+
 
 
     // Inner class for LanguageDirectionDialog JFrame
