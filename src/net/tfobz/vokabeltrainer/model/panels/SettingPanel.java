@@ -22,7 +22,7 @@ public class SettingPanel extends JPanel {
 
         // Home Button
         JButton homeButton = new JButton(new ImageIcon("icons/home.png")); // Unicode for home icon
-        homeButton.setBounds(20, 20, 40, 40);
+        homeButton.setBounds(20, 20, 64, 64);
         homeButton.setFont(new Font("Arial", Font.BOLD, 24));
         homeButton.setBorderPainted(false);
         homeButton.setContentAreaFilled(false);
@@ -123,6 +123,7 @@ public class SettingPanel extends JPanel {
         toggleSwitch.setFocusPainted(false);
         toggleSwitch.addActionListener(e -> {
             System.out.println("Toggle Switch: " + toggleSwitch.isSelected());
+            mainFrame.setGrossKleinschreibung(toggleSwitch.isSelected());
         });
         add(toggleSwitch);
 

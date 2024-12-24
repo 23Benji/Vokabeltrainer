@@ -1,9 +1,6 @@
 package net.tfobz.vokabeltrainer.model.panels;
 
-import net.tfobz.vokabeltrainer.model.Fach;
-import net.tfobz.vokabeltrainer.model.Karte;
-import net.tfobz.vokabeltrainer.model.MainFrame;
-import net.tfobz.vokabeltrainer.model.VokabeltrainerDB;
+import net.tfobz.vokabeltrainer.model.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,15 +10,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class FachPanel extends JPanel {
     MainFrame mainFrame;
     private JButton homeButton, leftArrow, rightArrow;
     private JLabel headingLabel;
     private JButton[] subjectButtons;
-    private LanguageDirectionDialog languageDirectionDialog;
     private int FachPage = 1;
-
 
     public FachPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -40,11 +36,9 @@ public class FachPanel extends JPanel {
         homeButton.setBorder(BorderFactory.createEmptyBorder());
         homeButton.setContentAreaFilled(false);
         homeButton.setFocusPainted(false);
-        homeButton.setBounds(10, 10, 32, 32); // Set bounds for the home button
+        homeButton.setBounds(20, 10, 32, 32); // Set bounds for the home button
         homeButton.addActionListener(e -> mainFrame.switchToHomePanel());
-        homeButton.setVisible(true);
         add(homeButton);
-
 
         // Left navigation arrow
         leftArrow = new JButton(new ImageIcon("icons/left_arrow.png"));
@@ -74,131 +68,157 @@ public class FachPanel extends JPanel {
 
         subjectButtons = new JButton[6];
         printFaecher(FachPage);
-
-
     }
 
-    // Method to create a button for each "Fach"
     private JButton createSubjectButton(String fachLabel, int index) {
         JButton button = new JButton(fachLabel);
-        button.setBackground(new Color(39, 85, 107)); // Darker blue color
+        button.setBackground(new Color(39, 85, 107));
         button.setFont(new Font("Roboto", Font.BOLD, 18));
         button.setForeground(Color.white);
-        button.setFocusPainted(false); // No focus border
-        button.addActionListener(e -> {
-            System.out.println(index);
-            new LanguageDirectionDialog(index);
-        });
+        button.setFocusPainted(false);
+        button.addActionListener(e -> showLanguageDirectionDialog(index));
         return button;
     }
 
     public void printFaecher(int page) {
-        // Remove all components from the panel
         removeAll();
-
-        // Re-add the common components (heading, home button, arrows)
         add(headingLabel);
         add(homeButton);
         add(leftArrow);
         add(rightArrow);
 
-        // Update buttons for subjects
-        int xOffset = 100, yOffset = 150;
-        int buttonWidth = 175, buttonHeight = 120; // Size of each button
-        int buttonSpacing = 20; // Space between buttons
+        int xOffset = 100, y = 225;
+        int buttonWidth = 175, buttonHeight = 120;
+        int buttonSpacing = 20;
 
-        // Fetch and cache the Karten list to avoid multiple method calls
-        List<Fach> kartenList = VokabeltrainerDB.getFaecher(mainFrame.getLernKarteiNummer());
-        boolean isEmpty;
+        // Get non-empty Fächer from the database
+        List<Fach> kartenForFach = VokabeltrainerDB.getFaecher(mainFrame.getLernKarteiNummer());
 
-        for (int i = 1; i <= 6; i++) {
-            // Calculate dynamic Fach number
-            String fachName = "Fach " + (i + (page - 1) * 6);
+        if (kartenForFach == null || kartenForFach.isEmpty()) {
+            JLabel emptyLabel = new JLabel("Keine verfügbaren Fächer.");
+            emptyLabel.setBounds(xOffset, y, 400, 50);
+            add(emptyLabel);
+            rightArrow.setEnabled(false); // Disable right arrow if no subjects exist
+        } else {
+            // Filter non-empty Fächer
+            List<Fach> nonEmptyFaecher = kartenForFach.stream()
+                    .filter(fach -> fach.getBeschreibung() != null && !fach.getBeschreibung().isEmpty())
+                    .collect(Collectors.toList());
 
-            // Create button
-            subjectButtons[i - 1] = createSubjectButton(fachName, i + (page - 1) * 6);
+            // Pagination Logic
+            int startIndex = (page - 1) * 3;
+            int endIndex = Math.min(startIndex + 3, nonEmptyFaecher.size());
 
-            // Check if there are any Karten inside the Fach
-            List<Karte> kartenForFach = VokabeltrainerDB.getKarten(i + (page - 1) * 6);
-            isEmpty = (kartenForFach == null || kartenForFach.isEmpty());
+            // Display up to 3 non-empty Fächer per page
+            for (int i = startIndex; i < endIndex; i++) {
+                Fach fach = nonEmptyFaecher.get(i);
+                String fachName = fach.getBeschreibung();
 
-            if (isEmpty) {
-                subjectButtons[i - 1].setEnabled(false);
+                subjectButtons[i - startIndex] = createSubjectButton(fachName, fach.getNummer());
+                subjectButtons[i - startIndex].setBounds(xOffset, y, buttonWidth, buttonHeight);
+                add(subjectButtons[i - startIndex]);
+
+                xOffset += buttonWidth + buttonSpacing;
             }
 
-            // Set position and add to UI
-            subjectButtons[i - 1].setBounds(xOffset, yOffset, buttonWidth, buttonHeight);
-            add(subjectButtons[i - 1]);
-
-            // Update position
-            xOffset += buttonWidth + buttonSpacing;
-            if (i == 3) { // Move to next row after 3 buttons
-                yOffset += 150;
-                xOffset = 100;
-            }
+            // Disable right arrow if there are no more pages
+            boolean hasNextPage = endIndex < nonEmptyFaecher.size();
+            rightArrow.setEnabled(hasNextPage);
         }
 
-        // Refresh the panel to reflect changes
         revalidate();
         repaint();
     }
 
 
+    private void showLanguageDirectionDialog(int fachNummer) {
+        System.out.println(VokabeltrainerDB.getKarten(fachNummer).toString());
+        System.out.println("Random: "+VokabeltrainerDB.getZufaelligeKarte(mainFrame.getLernKarteiNummer(), fachNummer).toString());
+        // Create the dialog
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Language Direction", true);
+        dialog.setSize(400, 220);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.getContentPane().setBackground(new Color(177, 194, 158)); // Soft greenish background
 
-    // Inner class for LanguageDirectionDialog JFrame
-    private class LanguageDirectionDialog extends JFrame {
-        private JLabel directionLabel;
-        private JButton swapButton;
-        private JButton startButton;
+        // Title Panel
+        JPanel titlePanel = new JPanel();
+        titlePanel.setBackground(new Color(101, 146, 135)); // Deep teal
+        JLabel titleLabel = new JLabel("Select Language Direction");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        titleLabel.setForeground(Color.WHITE); // White text for clarity
+        titlePanel.add(titleLabel);
+        dialog.add(titlePanel, BorderLayout.NORTH);
 
-        public LanguageDirectionDialog(int FachNummer) {
-            // Setup the frame
-            setTitle("Language Direction");
-            setSize(300, 150);
-            setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            setLocationRelativeTo(null);
-
-            // Setup the panel layout
-            JPanel panel = new JPanel();
-            panel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
-
-            // Language direction label
-            directionLabel = new JLabel("Deutsch -> Italian");
-            panel.add(directionLabel);
-
-            // Swap button
-            swapButton = new JButton(new ImageIcon("icons/swap.png")); // Replace with actual path
-            swapButton.addActionListener(e -> swapLanguages());
-            panel.add(swapButton);
-
-            // Start button
-            startButton = new JButton("Start");
-            startButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    startQuiz();
-                }
-            });
-            panel.add(startButton);
-
-            this.add(panel);
-            this.setVisible(true);
+        // Retrieve the current Lernkartei
+        Lernkartei lernkartei = VokabeltrainerDB.getLernkartei(mainFrame.getLernKarteiNummer());
+        String languageDirection = "Not Available"; // Default fallback
+        if (lernkartei != null) {
+            languageDirection = lernkartei.toString().replace(" ", " -> ");
         }
 
-        // Method to swap the languages in the label
-        private void swapLanguages() {
+        // Center Panel for Language Direction and Buttons
+        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        centerPanel.setBackground(new Color(177, 194, 158)); // Match main background
+
+        JLabel directionLabel = new JLabel(languageDirection);
+        directionLabel.setFont(new Font("Arial", Font.BOLD  , 20));
+        directionLabel.setForeground(new Color(101, 146, 135)); // Deep teal for consistency
+        directionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JButton swapButton = new JButton(new ImageIcon("icons/swap.png"));
+        swapButton.setToolTipText("Swap Language Direction");
+        swapButton.setFocusPainted(false);
+        swapButton.setBorderPainted(false);
+        swapButton.setContentAreaFilled(false);
+        swapButton.setPreferredSize(new Dimension(50, 50));
+
+        swapButton.addActionListener(e -> {
             String currentText = directionLabel.getText();
-            if (currentText.equals("Deutsch -> Italian")) {
-                directionLabel.setText("Italian -> Deutsch");
-            } else {
-                directionLabel.setText("Deutsch -> Italian");
-            }
-        }
 
-        // Method to handle the start quiz action
-        private void startQuiz() {
+            if (currentText.contains(" ") && !currentText.contains("->")) {
+                String[] parts = currentText.split(" ");
+                if (parts.length == 2) {
+                    directionLabel.setText(parts[0] + " -> " + parts[1]);
+                }
+            } else if (currentText.contains("->")) {
+                String[] parts = currentText.split(" -> ");
+                if (parts.length == 2) {
+                    directionLabel.setText(parts[1] + " -> " + parts[0]);
+                }
+            }
+        });
+
+        centerPanel.add(directionLabel);
+        centerPanel.add(swapButton);
+
+        dialog.add(centerPanel, BorderLayout.CENTER);
+
+        // Bottom Panel with Start Button
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        bottomPanel.setBackground(new Color(177, 194, 158)); // Warm earthy orange
+
+        JButton startButton = new JButton("Start Lesson");
+        startButton.setFont(new Font("Arial", Font.BOLD, 14));
+        startButton.setFocusPainted(false);
+        startButton.setForeground(Color.WHITE);
+        startButton.setBackground(new Color(101, 146, 135)); // Deep teal for contrast
+        startButton.setPreferredSize(new Dimension(150, 40));
+
+        startButton.addActionListener(e -> {
+            mainFrame.setFachNummer(fachNummer);
+            dialog.dispose();
             mainFrame.switchToQuizPanel();
-        }
+        });
+
+        bottomPanel.add(startButton);
+        dialog.add(bottomPanel, BorderLayout.SOUTH);
+
+        // Final settings
+        dialog.setResizable(false);
+        dialog.setVisible(true);
     }
 
+
 }
+

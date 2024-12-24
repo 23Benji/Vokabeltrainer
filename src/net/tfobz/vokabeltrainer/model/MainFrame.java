@@ -13,6 +13,8 @@ public class MainFrame extends JFrame {
     private CardLayout cardLayout;
     private int lernKarteiNummer = 1;
     private int fachNummer = 0;
+    private boolean richtung = false;
+    private boolean grossKleinschreibung;
 
     // Constructor
     public MainFrame() {
@@ -21,10 +23,7 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Initialize components
         initMainPanel();
-
-        // Show frame
         setVisible(true);
     }
 
@@ -89,5 +88,11 @@ public class MainFrame extends JFrame {
         return fachNummer;
     }
 
+    public void setGrossKleinschreibung(boolean grossKleinschreibung) {
+        this.grossKleinschreibung = grossKleinschreibung;
+    }
 
+    public boolean isGrossKleinschreibung() {
+        return grossKleinschreibung;
+    }
 }
