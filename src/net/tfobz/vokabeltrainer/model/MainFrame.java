@@ -34,7 +34,8 @@ public class MainFrame extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
 
         // Initially show the Home Panel
-        switchToHomePanel();
+        switchToFachPanel();
+        //switchToHomePanel();
     }
 
     // Methods to switch between panels - creating a new instance each time

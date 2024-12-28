@@ -132,8 +132,6 @@ public class FachPanel extends JPanel {
 
 
     private void showLanguageDirectionDialog(int fachNummer) {
-        System.out.println(VokabeltrainerDB.getKarten(fachNummer).toString());
-        System.out.println("Random: "+VokabeltrainerDB.getZufaelligeKarte(mainFrame.getLernKarteiNummer(), fachNummer).toString());
         // Create the dialog
         JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Language Direction", true);
         dialog.setSize(400, 220);
