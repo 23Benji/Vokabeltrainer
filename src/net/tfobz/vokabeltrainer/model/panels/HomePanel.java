@@ -75,6 +75,7 @@ public class HomePanel extends JPanel {
         modifyButton.setBackground(new Color(255, 230, 169));
         modifyButton.setForeground(Color.black);
         modifyButton.setBounds(520, 260, 200, 55);
+        modifyButton.addActionListener(e -> mainFrame.switchToModifyPanel());
         add(modifyButton);
     }
 
@@ -123,4 +124,6 @@ public class HomePanel extends JPanel {
         super.paintComponent(g);
         g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
     }
+
+
 }

@@ -1,9 +1,6 @@
 package net.tfobz.vokabeltrainer.model;
 
-import net.tfobz.vokabeltrainer.model.panels.FachPanel;
-import net.tfobz.vokabeltrainer.model.panels.HomePanel;
-import net.tfobz.vokabeltrainer.model.panels.QuizPanel;
-import net.tfobz.vokabeltrainer.model.panels.SettingPanel;
+import net.tfobz.vokabeltrainer.model.panels.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,8 +31,7 @@ public class MainFrame extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
 
         // Initially show the Home Panel
-        switchToFachPanel();
-        //switchToHomePanel();
+        switchToHomePanel();
     }
 
     // Methods to switch between panels - creating a new instance each time
@@ -67,6 +63,13 @@ public class MainFrame extends JFrame {
         mainPanel.removeAll();
         mainPanel.add(new QuizPanel(this), "Quiz");
         cardLayout.show(mainPanel, "Quiz");
+        revalidate();
+        repaint();
+    }
+    public void switchToModifyPanel() {
+        mainPanel.removeAll();
+        mainPanel.add(new ModifyPanel(this), "Modify");
+        cardLayout.show(mainPanel, "Modify");
         revalidate();
         repaint();
     }

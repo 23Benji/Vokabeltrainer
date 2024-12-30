@@ -97,38 +97,51 @@ public class FachPanel extends JPanel {
         if (kartenForFach == null || kartenForFach.isEmpty()) {
             JLabel emptyLabel = new JLabel("Keine verfügbaren Fächer.");
             emptyLabel.setBounds(xOffset, y, 400, 50);
+            emptyLabel.setForeground(Color.WHITE);
             add(emptyLabel);
-            rightArrow.setEnabled(false); // Disable right arrow if no subjects exist
+            rightArrow.setEnabled(false); // Disable navigation
+            leftArrow.setEnabled(false);
         } else {
-            // Filter non-empty Fächer
+            // Filter out Fächer with no cards
             List<Fach> nonEmptyFaecher = kartenForFach.stream()
-                    .filter(fach -> fach.getBeschreibung() != null && !fach.getBeschreibung().isEmpty())
+                    .filter(fach -> fach.getBeschreibung() != null && !fach.getBeschreibung().isEmpty()
+                            && !VokabeltrainerDB.getKarten(fach.getNummer()).isEmpty()) // Check if there are cards
                     .collect(Collectors.toList());
 
-            // Pagination Logic
-            int startIndex = (page - 1) * 3;
-            int endIndex = Math.min(startIndex + 3, nonEmptyFaecher.size());
 
-            // Display up to 3 non-empty Fächer per page
-            for (int i = startIndex; i < endIndex; i++) {
-                Fach fach = nonEmptyFaecher.get(i);
-                String fachName = fach.getBeschreibung();
+            if (nonEmptyFaecher.isEmpty()) {
+                JLabel emptyLabel = new JLabel("Keine verfügbaren Fächer.");
+                emptyLabel.setBounds(xOffset, y, 400, 50);
+                emptyLabel.setForeground(Color.WHITE);
+                add(emptyLabel);
+                rightArrow.setEnabled(false);
+                leftArrow.setEnabled(false);
+            } else {
+                // Pagination Logic
+                int startIndex = (page - 1) * 3;
+                int endIndex = Math.min(startIndex + 3, nonEmptyFaecher.size());
 
-                subjectButtons[i - startIndex] = createSubjectButton(fachName, fach.getNummer());
-                subjectButtons[i - startIndex].setBounds(xOffset, y, buttonWidth, buttonHeight);
-                add(subjectButtons[i - startIndex]);
+                for (int i = startIndex; i < endIndex; i++) {
+                    Fach fach = nonEmptyFaecher.get(i);
+                    String fachName = fach.getBeschreibung();
 
-                xOffset += buttonWidth + buttonSpacing;
+                    subjectButtons[i - startIndex] = createSubjectButton(fachName, fach.getNummer());
+                    subjectButtons[i - startIndex].setBounds(xOffset, y, buttonWidth, buttonHeight);
+                    add(subjectButtons[i - startIndex]);
+
+                    xOffset += buttonWidth + buttonSpacing;
+                }
+
+                // Handle navigation arrows
+                leftArrow.setEnabled(page > 1);
+                rightArrow.setEnabled(endIndex < nonEmptyFaecher.size());
             }
-
-            // Disable right arrow if there are no more pages
-            boolean hasNextPage = endIndex < nonEmptyFaecher.size();
-            rightArrow.setEnabled(hasNextPage);
         }
 
         revalidate();
         repaint();
     }
+
 
 
     private void showLanguageDirectionDialog(int fachNummer) {
