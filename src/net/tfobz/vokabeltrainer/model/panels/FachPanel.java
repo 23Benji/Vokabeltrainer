@@ -4,12 +4,11 @@ import net.tfobz.vokabeltrainer.model.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.HashMap;
+
+import java.text.SimpleDateFormat;
+import java.time.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class FachPanel extends JPanel {
@@ -70,13 +69,18 @@ public class FachPanel extends JPanel {
         printFaecher(FachPage);
     }
 
-    private JButton createSubjectButton(String fachLabel, int index) {
+    private JButton createSubjectButton(String fachLabel, int index, boolean isClickable) {
         JButton button = new JButton(fachLabel);
-        button.setBackground(new Color(39, 85, 107));
+        button.setBackground(isClickable ? new Color(39, 85, 107) : new Color(100, 100, 100)); // Gray if not clickable
         button.setFont(new Font("Roboto", Font.BOLD, 18));
         button.setForeground(Color.white);
         button.setFocusPainted(false);
-        button.addActionListener(e -> showLanguageDirectionDialog(index));
+        button.setEnabled(isClickable); // Disable button if not clickable
+
+        if (isClickable) {
+            button.addActionListener(e -> ConfirmDialog(index));
+        }
+
         return button;
     }
 
@@ -91,7 +95,6 @@ public class FachPanel extends JPanel {
         int buttonWidth = 175, buttonHeight = 120;
         int buttonSpacing = 20;
 
-        // Get non-empty Fächer from the database
         List<Fach> kartenForFach = VokabeltrainerDB.getFaecher(mainFrame.getLernKarteiNummer());
 
         if (kartenForFach == null || kartenForFach.isEmpty()) {
@@ -99,15 +102,13 @@ public class FachPanel extends JPanel {
             emptyLabel.setBounds(xOffset, y, 400, 50);
             emptyLabel.setForeground(Color.WHITE);
             add(emptyLabel);
-            rightArrow.setEnabled(false); // Disable navigation
+            rightArrow.setEnabled(false);
             leftArrow.setEnabled(false);
         } else {
-            // Filter out Fächer with no cards
             List<Fach> nonEmptyFaecher = kartenForFach.stream()
                     .filter(fach -> fach.getBeschreibung() != null && !fach.getBeschreibung().isEmpty()
-                            && !VokabeltrainerDB.getKarten(fach.getNummer()).isEmpty()) // Check if there are cards
+                            && !VokabeltrainerDB.getKarten(fach.getNummer()).isEmpty())
                     .collect(Collectors.toList());
-
 
             if (nonEmptyFaecher.isEmpty()) {
                 JLabel emptyLabel = new JLabel("Keine verfügbaren Fächer.");
@@ -117,7 +118,6 @@ public class FachPanel extends JPanel {
                 rightArrow.setEnabled(false);
                 leftArrow.setEnabled(false);
             } else {
-                // Pagination Logic
                 int startIndex = (page - 1) * 3;
                 int endIndex = Math.min(startIndex + 3, nonEmptyFaecher.size());
 
@@ -125,14 +125,33 @@ public class FachPanel extends JPanel {
                     Fach fach = nonEmptyFaecher.get(i);
                     String fachName = fach.getBeschreibung();
 
-                    subjectButtons[i - startIndex] = createSubjectButton(fachName, fach.getNummer());
+                    boolean isClickable = isFachAccessible(fach);
+                    String buttonLabel = fachName;
+                    JLabel timeLabel = null;
+
+                    if (!isClickable) {
+                        // Berechne die verbleibende Zeit bis zur Verfügbarkeit
+                        Date lastAccess = fach.getGelerntAm();
+                        LocalDateTime lastAccessTime = Instant.ofEpochMilli(lastAccess.getTime())
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDateTime();
+
+                        long hoursLeft = 24 - Duration.between(lastAccessTime, LocalDateTime.now()).toHours();
+                        timeLabel = new JLabel("verfügbar in " + hoursLeft + " Std.");
+                        timeLabel.setFont(new Font("Roboto", Font.PLAIN, 12)); // Kleinere Schrift
+                        timeLabel.setForeground(Color.white); // Textfarbe
+                        timeLabel.setBounds(xOffset, y + buttonHeight, buttonWidth, 20); // Position unter dem Button
+                        add(timeLabel);  // Label unter dem Button hinzufügen
+                    }
+
+                    subjectButtons[i - startIndex] = createSubjectButton(buttonLabel, fach.getNummer(), isClickable);
                     subjectButtons[i - startIndex].setBounds(xOffset, y, buttonWidth, buttonHeight);
                     add(subjectButtons[i - startIndex]);
 
                     xOffset += buttonWidth + buttonSpacing;
                 }
 
-                // Handle navigation arrows
+
                 leftArrow.setEnabled(page > 1);
                 rightArrow.setEnabled(endIndex < nonEmptyFaecher.size());
             }
@@ -141,12 +160,32 @@ public class FachPanel extends JPanel {
         revalidate();
         repaint();
     }
+    private boolean isFachAccessible(Fach fach) {
+//        LocalDate localDate = LocalDate.of(2025, 1, 1);
+//        Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+//        fach.setGelerntAm(date);
+        Date lastAccess = fach.getGelerntAm(); // Fetch last access time
+        System.out.println(fach.toString());
+
+        if (lastAccess == null) {
+            return true; // Accessible if never accessed before
+        }
+
+        // Convert Date to LocalDateTime
+        LocalDateTime lastAccessTime = Instant.ofEpochMilli(lastAccess.getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+        return Duration.between(lastAccessTime, LocalDateTime.now()).toHours() >= 24;
+    }
 
 
 
-    private void showLanguageDirectionDialog(int fachNummer) {
+
+
+    private void ConfirmDialog(int fachNummer) {
         // Create the dialog
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Language Direction", true);
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Start Lesson", true);
         dialog.setSize(400, 220);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout(10, 10));
@@ -155,57 +194,24 @@ public class FachPanel extends JPanel {
         // Title Panel
         JPanel titlePanel = new JPanel();
         titlePanel.setBackground(new Color(101, 146, 135)); // Deep teal
-        JLabel titleLabel = new JLabel("Select Language Direction");
+        JLabel titleLabel = new JLabel("Lernkartei: " + VokabeltrainerDB.getLernkartei(mainFrame.getLernKarteiNummer()).toString());
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         titleLabel.setForeground(Color.WHITE); // White text for clarity
         titlePanel.add(titleLabel);
         dialog.add(titlePanel, BorderLayout.NORTH);
 
-        // Retrieve the current Lernkartei
-        Lernkartei lernkartei = VokabeltrainerDB.getLernkartei(mainFrame.getLernKarteiNummer());
-        String languageDirection = "Not Available"; // Default fallback
-        if (lernkartei != null) {
-            languageDirection = lernkartei.toString().replace(" ", " -> ");
-        }
-
-        // Center Panel for Language Direction and Buttons
+        // Fach Number Display
         JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         centerPanel.setBackground(new Color(177, 194, 158)); // Match main background
 
-        JLabel directionLabel = new JLabel(languageDirection);
-        directionLabel.setFont(new Font("Arial", Font.BOLD  , 20));
-        directionLabel.setForeground(new Color(101, 146, 135)); // Deep teal for consistency
-        directionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-        JButton swapButton = new JButton(new ImageIcon("icons/swap.png"));
-        swapButton.setToolTipText("Swap Language Direction");
-        swapButton.setFocusPainted(false);
-        swapButton.setBorderPainted(false);
-        swapButton.setContentAreaFilled(false);
-        swapButton.setPreferredSize(new Dimension(50, 50));
-
-        swapButton.addActionListener(e -> {
-            String currentText = directionLabel.getText();
-
-            if (currentText.contains(" ") && !currentText.contains("->")) {
-                String[] parts = currentText.split(" ");
-                if (parts.length == 2) {
-                    directionLabel.setText(parts[0] + " -> " + parts[1]);
-                }
-            } else if (currentText.contains("->")) {
-                String[] parts = currentText.split(" -> ");
-                if (parts.length == 2) {
-                    directionLabel.setText(parts[1] + " -> " + parts[0]);
-                }
-            }
-        });
-
-        centerPanel.add(directionLabel);
-        centerPanel.add(swapButton);
+        JLabel fachLabel = new JLabel("Fach Nr. " + fachNummer);
+        fachLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        fachLabel.setForeground(new Color(101, 146, 135)); // Deep teal for consistency
+        centerPanel.add(fachLabel);
 
         dialog.add(centerPanel, BorderLayout.CENTER);
 
-        // Bottom Panel with Start Button
+        // Start Button
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         bottomPanel.setBackground(new Color(177, 194, 158)); // Warm earthy orange
 
@@ -229,6 +235,7 @@ public class FachPanel extends JPanel {
         dialog.setResizable(false);
         dialog.setVisible(true);
     }
+
 
 
 }
