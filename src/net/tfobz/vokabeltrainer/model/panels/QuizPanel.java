@@ -1,9 +1,9 @@
 package net.tfobz.vokabeltrainer.model.panels;
 
 import net.tfobz.vokabeltrainer.model.Fach;
+import net.tfobz.vokabeltrainer.model.Karte;
 import net.tfobz.vokabeltrainer.model.MainFrame;
 import net.tfobz.vokabeltrainer.model.VokabeltrainerDB;
-import net.tfobz.vokabeltrainer.model.Karte;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +17,9 @@ public class QuizPanel extends JPanel {
     private JLabel wordLabel, correctAnswerLabel;
     private Karte currentCard; // Store the current Karte for validation
     private boolean allCardsAnswered = false; // Track if all cards are done
+    private int correct;
+    private int wrong;
+    private int total;
 
     // Constructor
     public QuizPanel(MainFrame mainFrame) {
@@ -25,6 +28,10 @@ public class QuizPanel extends JPanel {
         setLayout(null);
         loadNextCard();
         addEventListeners();
+        addEnterKeyBinding();
+        this.correct = 0;
+        this.wrong = 0;
+        this.total = 0;
     }
 
     // Initialize GUI Components
@@ -44,16 +51,18 @@ public class QuizPanel extends JPanel {
         add(wordLabel);
 
         correctAnswerLabel = new JLabel("Correct Answer", SwingConstants.CENTER);
-        correctAnswerLabel.setFont(new Font("Arial", Font.PLAIN, 18));
-        correctAnswerLabel.setForeground(Color.WHITE);
+        correctAnswerLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        correctAnswerLabel.setForeground(Color.RED);
         correctAnswerLabel.setOpaque(true);
         correctAnswerLabel.setVisible(false);
-        correctAnswerLabel.setBounds(150, 180, 200, 40);
+        correctAnswerLabel.setBounds(300, 180, 200, 20);
         add(correctAnswerLabel);
 
         inputField = new JTextField();
         inputField.setBounds(250, 440, 210, 40);
-         add(inputField);
+        inputField.setFocusable(true);
+        inputField.requestFocusInWindow();
+        add(inputField);
 
         checkButton = new JButton("Check");
         checkButton.setBounds(460, 440, 90, 40);
@@ -64,13 +73,34 @@ public class QuizPanel extends JPanel {
         add(checkButton);
 
         nextButton = new JButton("Next");
-        nextButton.setBounds(310, 270, 90, 40);
+        nextButton.setBounds(460, 440, 90, 40);
         nextButton.setBackground(new Color(46, 134, 193));
         nextButton.setForeground(Color.WHITE);
         nextButton.setVisible(false);
         add(nextButton);
 
         setDefaultScreen();
+    }
+
+    // Add key binding for Enter key to trigger actions
+    private void addEnterKeyBinding() {
+        // For Check Button
+        checkButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"), "checkAction");
+        checkButton.getActionMap().put("checkAction", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                checkButton.doClick();
+            }
+        });
+
+        // For Next Button (when it's visible)
+        nextButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"), "nextAction");
+        nextButton.getActionMap().put("nextAction", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                nextButton.doClick();
+            }
+        });
     }
 
     // Load the next card from the database
@@ -106,7 +136,7 @@ public class QuizPanel extends JPanel {
 
     // Set Correct Screen
     private void setCorrectScreen() {
-        setBackground(new Color(92, 179, 56)); // Correct background: rgb(92, 179, 56)
+        setBackground(new Color(83, 124, 67)); // Correct background: rgb(92, 179, 56)
         wordLabel.setBackground(new Color(255, 230, 169)); // Light yellow for word box: rgb(255, 230, 169)
         correctAnswerLabel.setVisible(false);
         nextButton.setVisible(true);
@@ -117,39 +147,61 @@ public class QuizPanel extends JPanel {
     private void setWrongScreen(String correctAnswer) {
         setBackground(new Color(251, 65, 65)); // Wrong background: rgb(251, 65, 65)
         wordLabel.setBackground(new Color(222, 170, 121)); // Light brown word box: rgb(222, 170, 121)
-        correctAnswerLabel.setText("Correct: " + correctAnswer);
+        correctAnswerLabel.setText("Correct Answer: " + correctAnswer);
         correctAnswerLabel.setVisible(true);
         nextButton.setVisible(true);
         checkButton.setVisible(false);
     }
 
-
     // Set Finish Screen
     private void setFinishScreen() {
-        setBackground(new Color(255, 215, 0)); // Gold background
+        setBackground(new Color(85, 126, 148)); // Gold background
         removeAll(); // Clear all existing components
         repaint();
         revalidate();
 
-        JLabel finishLabel = new JLabel("🎉 Quiz Completed! 🎉", SwingConstants.CENTER);
+        // Quiz Completion Label
+        JLabel finishLabel = new JLabel("Quiz Completed!", SwingConstants.CENTER);
         finishLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        finishLabel.setBounds(100, 150, 300, 50);
+        finishLabel.setBounds(285, 150, 200, 50);
         finishLabel.setForeground(Color.BLACK);
         add(finishLabel);
 
+        // Correct, Wrong, and Total Score Labels
+        JLabel correctLabel = new JLabel("Correct: " + correct, SwingConstants.CENTER);
+        correctLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+        correctLabel.setBounds(285, 220, 200, 40);
+        correctLabel.setForeground(Color.GREEN);
+        add(correctLabel);
+
+        JLabel wrongLabel = new JLabel("Wrong: " + wrong, SwingConstants.CENTER);
+        wrongLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+        wrongLabel.setBounds(285, 270, 200, 40);
+        wrongLabel.setForeground(Color.RED);
+        add(wrongLabel);
+
+        JLabel totalLabel = new JLabel("Total: " + total, SwingConstants.CENTER);
+        totalLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+        totalLabel.setBounds(285, 320, 200, 40);
+        totalLabel.setForeground(Color.BLACK);
+        add(totalLabel);
+
+        // Home Button
         JButton homeButton = new JButton("Home");
-        homeButton.setBounds(150, 250, 200, 40);
-        homeButton.setBackground(new Color(46, 134, 193));
+        homeButton.setBounds(285, 380, 200, 40);
+        homeButton.setBackground(new Color(121, 141, 222));
         homeButton.setForeground(Color.WHITE);
+        homeButton.setFocusPainted(false);
+        homeButton.setBorderPainted(false);
         homeButton.addActionListener(e -> mainFrame.switchToHomePanel());
         add(homeButton);
     }
 
     // Event Listeners
-// Event Listeners
     private void addEventListeners() {
         // Check Button Logic
         checkButton.addActionListener(e -> {
+            inputField.setEnabled(false);
             if (currentCard == null) return;
 
             String userInput = inputField.getText().trim();
@@ -167,7 +219,7 @@ public class QuizPanel extends JPanel {
                         return;
                     }
                 } while (result == -2);
-
+                correct++;
                 setCorrectScreen();
             } else {
                 do {
@@ -178,24 +230,19 @@ public class QuizPanel extends JPanel {
                         return;
                     }
                 } while (result == -1);
-
+                wrong++;
                 setWrongScreen(correctAnswer);
             }
         });
+
         // Next Button Logic
-        nextButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                loadNextCard(); // Load a new question
-            }
-        });
+        nextButton.addActionListener(e -> {
+            total++;
+            inputField.setEnabled(true);
+            loadNextCard();
+        }); // Load a new question
 
         // Home Button Logic
-        homeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                mainFrame.switchToHomePanel();
-            }
-        });
+        homeButton.addActionListener(e -> mainFrame.switchToHomePanel());
     }
 }

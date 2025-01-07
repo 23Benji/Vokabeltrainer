@@ -207,8 +207,7 @@ public class SettingPanel extends JPanel {
                         );
 
                         if (selectedIndex != -1) {
-                            Lernkartei selectedLernkartei = lernkarteienList.get(selectedIndex);
-                            int lernkarteiId = selectedLernkartei.getNummer();
+                            int lernkarteiId = lernkarteienList.get(selectedIndex).getNummer();
 
                             // Ask whether to include "Fächer" in export
                             int includeFaechern = JOptionPane.showConfirmDialog(

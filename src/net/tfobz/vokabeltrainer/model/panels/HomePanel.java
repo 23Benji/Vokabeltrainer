@@ -16,6 +16,7 @@ public class HomePanel extends JPanel {
     public HomePanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
 
+        mainFrame.preloadLanguageLabels();
         // Panel properties
         setLayout(null); // No layout manager
         backgroundImage = new ImageIcon("images/Bgd2.jpg").getImage();

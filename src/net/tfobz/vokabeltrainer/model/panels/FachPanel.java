@@ -172,9 +172,6 @@ public class FachPanel extends JPanel {
 
 
     private boolean isFachAccessible(Fach fach) {
-//        LocalDate localDate = LocalDate.of(2025, 1, 1);
-//        Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-//        fach.setGelerntAm(date);
         Date lastAccess = fach.getGelerntAm(); // Fetch last access time
         System.out.println(fach.toString());
 
@@ -205,7 +202,7 @@ public class FachPanel extends JPanel {
         // Title Panel
         JPanel titlePanel = new JPanel();
         titlePanel.setBackground(new Color(101, 146, 135)); // Deep teal
-        JLabel titleLabel = new JLabel("Lernkartei: " + mainFrame.getCurrentLernkartei().toString(), SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("Lernkartei: " + mainFrame.getCurrentLernkartei().toString());
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         titleLabel.setForeground(Color.WHITE); // White text for clarity
         titlePanel.add(titleLabel);

@@ -21,12 +21,12 @@ public class Fach
     protected int nummer = -1;
     protected String beschreibung = null;
     protected int erinnerungsIntervall = 1;
-    protected Date gelerntAm = null;
+    protected Date gelerntAm=null;
 
     protected Hashtable<String, String> fehler = null;
 
     public Fach() {
-        this.gelerntAm = new Date();
+        this.setGelerntAm(new Date());
     }
 
     public Fach(int nummer, String beschreibung, int erinnerungsIntervall, Date gelerntAm) {
@@ -55,8 +55,8 @@ public class Fach
     public String toString() {
         String ret = null;
         ret = beschreibung + ", zuletzt gelernt am " + getGelerntAmEuropaeischString();
-        if (getErinnerungFaellig())
-            ret = ret + " ERINNERUNG";
+//        if (getErinnerungFaellig())
+//            ret = ret + " ERINNERUNG";
         return ret;
     }
 
@@ -112,7 +112,11 @@ public class Fach
         return ret;
     }
     public void setGelerntAm(Date gelerntAm) {
-        this.gelerntAm = gelerntAm;
+        if (gelerntAm == null){
+            gelerntAm = new Date();
+        }else{
+            this.gelerntAm = gelerntAm;
+        }
     }
     public boolean getErinnerungFaellig() {
         boolean ret = false;

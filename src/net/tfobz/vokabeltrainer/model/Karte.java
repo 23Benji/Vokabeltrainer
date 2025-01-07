@@ -122,4 +122,12 @@ public class Karte
 	public boolean getGrossKleinschreibung() {
 		return grossKleinschreibung;
 	}
+
+	public void setGrossKleinschreibung(boolean grossKleinschreibung) {
+		this.grossKleinschreibung = grossKleinschreibung;
+	}
+
+	public void setRichtung(boolean richtung) {
+		this.richtung = richtung;
+	}
 }

@@ -4,6 +4,7 @@ import net.tfobz.vokabeltrainer.model.panels.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainFrame extends JFrame {
@@ -37,10 +38,12 @@ public class MainFrame extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
 
         // Initially show the Home Panel
+        //switchToQuizPanel();
         switchToHomePanel();
     }
 
-    private void preloadLanguageLabels() {
+    public void preloadLanguageLabels() {
+
         System.out.println("preloadLanguageLabels");
         lernkarteien = VokabeltrainerDB.getLernkarteien();
         System.out.println(lernkarteien.toString());
@@ -55,6 +58,9 @@ public class MainFrame extends JFrame {
             } else {
                 languageLabels[i] = kartei.toString();
             }
+        }
+        if (languageLabels == null) {
+            languageLabels[0]="No Lernkarteien Available";
         }
 
         // Set initial index to 0
@@ -156,6 +162,20 @@ public class MainFrame extends JFrame {
 
     public void setFachNummer(int fachNummer) {
         FachNummer = fachNummer;
+    }
+
+    public int getLernkarteiIdForIndex(int selectedIndex) {
+        preloadLanguageLabels();
+        return lernkarteien.get(selectedIndex).getNummer();
+    }
+
+    public int getFachIdForIndex(int selectedFachIndex,int selectedLernkarteiIndex) {
+        // Assuming Lernkartei has a getFach() method that returns a Fach object
+        Lernkartei selectedLernkartei = lernkarteien.get(selectedFachIndex);
+
+        ArrayList<Fach> facher = (ArrayList<Fach>) VokabeltrainerDB.getFaecher(selectedLernkarteiIndex);
+        // Now return the Fach ID from the selected Lernkartei
+       return facher.get(selectedFachIndex).getNummer();
     }
 
 }
