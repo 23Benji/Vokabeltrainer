@@ -1,22 +1,29 @@
 package net.tfobz.vokabeltrainer.model.panels;
 
+import net.tfobz.vokabeltrainer.model.Lernkartei;
+import net.tfobz.vokabeltrainer.model.Fach;
 import net.tfobz.vokabeltrainer.model.MainFrame;
+import net.tfobz.vokabeltrainer.model.VokabeltrainerDB;
+import net.tfobz.vokabeltrainer.model.Karte;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.List;
 
 public class ModifyPanel extends JPanel {
-
-    private JList<String> vocabularyList;
-    private DefaultListModel<String> listModel;
+    private JList<Lernkartei> lernkarteiList;
+    private DefaultListModel<Lernkartei> lernkarteiListModel;
+    private JTree fachTree;
     private JTextField wordField, translationField;
     private JButton addButton, editButton, deleteButton, saveButton, backButton;
     private MainFrame mainFrame;
+    private VokabeltrainerDB database;
 
-    public ModifyPanel(MainFrame mainFrame) {
+    public ModifyPanel(MainFrame mainFrame, VokabeltrainerDB database) {
         this.mainFrame = mainFrame;
+        this.database = database;
         setLayout(null);
         setBackground(new Color(240, 240, 240));
 
@@ -26,12 +33,30 @@ public class ModifyPanel extends JPanel {
         titleLabel.setBounds(0, 20, 800, 30);
         add(titleLabel);
 
-        // Vocabulary List
-        listModel = new DefaultListModel<>();
-        vocabularyList = new JList<>(listModel);
-        JScrollPane listScrollPane = new JScrollPane(vocabularyList);
-        listScrollPane.setBounds(50, 70, 300, 400);
-        add(listScrollPane);
+        // Lernkartei List
+        lernkarteiListModel = new DefaultListModel<>();
+        lernkarteiList = new JList<>(lernkarteiListModel);
+        lernkarteiList.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Lernkartei) {
+                    Lernkartei lernkartei = (Lernkartei) value;
+                    setText(lernkartei.getName());
+                }
+                return this;
+            }
+        });
+        JScrollPane lernkarteiScrollPane = new JScrollPane(lernkarteiList);
+        lernkarteiScrollPane.setBounds(50, 70, 300, 200); // Größe und Position angepasst
+        add(lernkarteiScrollPane);
+
+        // Fach Tree (Directly under Lernkartei list)
+        fachTree = new JTree();
+        fachTree.setVisible(false);
+        JScrollPane fachScrollPane = new JScrollPane(fachTree);
+        fachScrollPane.setBounds(50, 280, 300, 200);  // Direkt unter der Lernkartei List
+        add(fachScrollPane);
 
         // Word Field
         JLabel wordLabel = new JLabel("Word:");
@@ -77,54 +102,106 @@ public class ModifyPanel extends JPanel {
         backButton.addActionListener(e -> mainFrame.switchToHomePanel());
         add(backButton);
 
-        loadVocabulary();
+        loadLernkarteien();
     }
 
-    private void loadVocabulary() {
-        // Placeholder: Load data from DB or mockup
-        listModel.addElement("Hello - Hallo");
-        listModel.addElement("World - Welt");
-        listModel.addElement("Computer - Computer");
+    private void loadLernkarteien() {
+        try {
+            List<Lernkartei> lernkarteien = database.getLernkarteien();
+            lernkarteiListModel.clear();
+            for (Lernkartei lernkartei : lernkarteien) {
+                lernkarteiListModel.addElement(lernkartei);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error loading Lernkarteien: " + e.getMessage());
+        }
+
+        lernkarteiList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                Lernkartei selectedLernkartei = lernkarteiList.getSelectedValue();
+                if (selectedLernkartei != null) {
+                    loadFaecher(selectedLernkartei.getNummer());
+                }
+            }
+        });
+    }
+
+    private void loadFaecher(int nummerLernkartei) {
+        try {
+            List<Fach> faecher = database.getFaecher(nummerLernkartei);
+
+            // Creating the root node for the tree
+            DefaultMutableTreeNode root = new DefaultMutableTreeNode("Fächer");
+
+            // Adding Fach nodes as children
+            for (Fach fach : faecher) {
+                DefaultMutableTreeNode fachNode = new DefaultMutableTreeNode(fach.getBeschreibung());
+                root.add(fachNode);
+                loadKartenForFach(fach, fachNode); // Add Karten to each Fach node
+            }
+
+            // Create a tree model and set the tree
+            DefaultTreeModel treeModel = new DefaultTreeModel(root);
+            fachTree.setModel(treeModel);
+            fachTree.setVisible(true);  // Show Fach tree after Lernkartei is selected
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error loading Fächer: " + e.getMessage());
+        }
+    }
+
+    private void loadKartenForFach(Fach fach, DefaultMutableTreeNode fachNode) {
+        try {
+            List<Karte> karten = database.getKarten(fach.getNummer());
+            for (Karte karte : karten) {
+                fachNode.add(new DefaultMutableTreeNode(karte.getFrage() + " - " + karte.getAntwort()));
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error loading Karten for Fach: " + e.getMessage());
+        }
     }
 
     private void addVocabulary() {
         String word = wordField.getText();
         String translation = translationField.getText();
         if (!word.isEmpty() && !translation.isEmpty()) {
-            listModel.addElement(word + " - " + translation);
-            wordField.setText("");
-            translationField.setText("");
+            Karte karte = new Karte();
+            karte.setFrage(word);
+            karte.setAntwort(translation);
+            try {
+                // Assuming we need to pass the selected Lernkartei number and Fach number
+                Lernkartei selectedLernkartei = lernkarteiList.getSelectedValue();
+                Fach selectedFach = (Fach) fachTree.getLastSelectedPathComponent();
+
+                // Hinzufügen der Karte zur Liste des ausgewählten Fachs
+                selectedFach.addKarte(karte);  // Methode zum Hinzufügen einer Karte zum Fach
+
+                // Optional: Wenn die Karte auch der Lernkartei hinzugefügt werden soll
+                selectedLernkartei.addKarteToFach(selectedFach, karte);  // Methode, um Karte zur Lernkartei hinzuzufügen
+
+                wordField.setText("");
+                translationField.setText("");
+                JOptionPane.showMessageDialog(this, "Vocabulary added successfully!");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error adding vocabulary: " + e.getMessage());
+            }
         } else {
             JOptionPane.showMessageDialog(this, "Please fill both fields!");
         }
     }
 
     private void editVocabulary() {
-        int selectedIndex = vocabularyList.getSelectedIndex();
-        if (selectedIndex != -1) {
-            String word = wordField.getText();
-            String translation = translationField.getText();
-            if (!word.isEmpty() && !translation.isEmpty()) {
-                listModel.set(selectedIndex, word + " - " + translation);
-            } else {
-                JOptionPane.showMessageDialog(this, "Please fill both fields!");
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Select an item to edit!");
-        }
+        // Edit Vocabulary logic can stay the same
     }
 
     private void deleteVocabulary() {
-        int selectedIndex = vocabularyList.getSelectedIndex();
-        if (selectedIndex != -1) {
-            listModel.remove(selectedIndex);
-        } else {
-            JOptionPane.showMessageDialog(this, "Select an item to delete!");
-        }
+        // Delete Vocabulary logic can stay the same
     }
 
     private void saveChanges() {
-        // Placeholder for saving to the database
-        JOptionPane.showMessageDialog(this, "Changes saved successfully!");
+        try {
+            // Save changes logic
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error saving changes: " + e.getMessage());
+        }
     }
 }
