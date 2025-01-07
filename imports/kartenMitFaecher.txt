@@ -1,4 +1,4 @@
-Haus; house; 0
+Haus; house; 5
 Strauch; shrub; 1
 Zaun; fence; 0
 Garten; Garden; 1

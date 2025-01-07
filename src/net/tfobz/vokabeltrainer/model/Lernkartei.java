@@ -16,12 +16,12 @@ public class Lernkartei
 	protected boolean grossKleinschreibung = false;
 
 	protected Hashtable<String, String> fehler = null;
-	
+
 	public Lernkartei() {
 	}
-	
+
 	public Lernkartei(int nummer, String beschreibung, String wortEinsBeschreibung, String wortZweiBeschreibung,
-			boolean richtung, boolean grossKleinschreibung) {
+					  boolean richtung, boolean grossKleinschreibung) {
 		this.nummer = nummer;
 		this.beschreibung = beschreibung;
 		this.wortEinsBeschreibung = wortEinsBeschreibung;
@@ -31,7 +31,7 @@ public class Lernkartei
 	}
 
 	public Lernkartei(String beschreibung, String wortEinsBeschreibung, String wortZweiBeschreibung,
-			boolean richtung, boolean grossKleinschreibung) {
+					  boolean richtung, boolean grossKleinschreibung) {
 		this.beschreibung = beschreibung;
 		this.wortEinsBeschreibung = wortEinsBeschreibung;
 		this.wortZweiBeschreibung = wortZweiBeschreibung;
@@ -41,26 +41,26 @@ public class Lernkartei
 
 	@Override
 	public boolean equals(Object o) {
-  	boolean ret = false;
-  	if (o != null && o instanceof Lernkartei) {
-  		Lernkartei k = (Lernkartei)o;
-  		if (k.nummer == nummer && 
-  				(k.wortEinsBeschreibung == null && wortEinsBeschreibung == null || 
-  				k.wortEinsBeschreibung.equals(wortEinsBeschreibung)) &&
-  				(k.wortZweiBeschreibung == null && wortZweiBeschreibung == null || 
-  				k.wortZweiBeschreibung.equals(wortZweiBeschreibung)) &&
-  				k.richtung == richtung &&
-  				k.grossKleinschreibung == grossKleinschreibung)
-  			ret = true;
-  	}
-  	return ret;
+		boolean ret = false;
+		if (o != null && o instanceof Lernkartei) {
+			Lernkartei k = (Lernkartei)o;
+			if (k.nummer == nummer &&
+					(k.wortEinsBeschreibung == null && wortEinsBeschreibung == null ||
+							k.wortEinsBeschreibung.equals(wortEinsBeschreibung)) &&
+					(k.wortZweiBeschreibung == null && wortZweiBeschreibung == null ||
+							k.wortZweiBeschreibung.equals(wortZweiBeschreibung)) &&
+					k.richtung == richtung &&
+					k.grossKleinschreibung == grossKleinschreibung)
+				ret = true;
+		}
+		return ret;
 	}
-	
+
 	@Override
 	public String toString() {
 		return beschreibung;
 	}
-	
+
 	/**
 	 * Kontrolliert ob wortEinsBeschreibung und wortZweiBeschreibung eingegeben wurden
 	 */
@@ -81,7 +81,7 @@ public class Lernkartei
 			fehler.put("wortZweiBeschreibung", "Muss eingegeben werden");
 		}
 	}
-	
+
 	public int getNummer() {
 		return nummer;
 	}

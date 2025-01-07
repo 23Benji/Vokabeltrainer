@@ -75,11 +75,12 @@ public class FachPanel extends JPanel {
         button.setFont(new Font("Roboto", Font.BOLD, 18));
         button.setForeground(Color.white);
         button.setFocusPainted(false);
-        button.setEnabled(isClickable); // Disable button if not clickable
+        //button.setEnabled(isClickable); // Disable button if not clickable
 
-        if (isClickable) {
-            button.addActionListener(e -> ConfirmDialog(index));
-        }
+//        if (isClickable) {
+//            button.addActionListener(e -> ConfirmDialog(index));
+//        }
+        button.addActionListener(e -> {ConfirmDialog(index);});
 
         return button;
     }
@@ -96,6 +97,7 @@ public class FachPanel extends JPanel {
         int buttonSpacing = 20;
 
         List<Fach> kartenForFach = VokabeltrainerDB.getFaecher(mainFrame.getLernKarteiNummer());
+        System.out.println("Fetched subjects: " + kartenForFach); // Debug
 
         if (kartenForFach == null || kartenForFach.isEmpty()) {
             JLabel emptyLabel = new JLabel("Keine verfügbaren Fächer.");
@@ -110,6 +112,8 @@ public class FachPanel extends JPanel {
                             && !VokabeltrainerDB.getKarten(fach.getNummer()).isEmpty())
                     .collect(Collectors.toList());
 
+            System.out.println("Filtered subjects: " + nonEmptyFaecher); // Debug
+
             if (nonEmptyFaecher.isEmpty()) {
                 JLabel emptyLabel = new JLabel("Keine verfügbaren Fächer.");
                 emptyLabel.setBounds(xOffset, y, 400, 50);
@@ -118,48 +122,55 @@ public class FachPanel extends JPanel {
                 rightArrow.setEnabled(false);
                 leftArrow.setEnabled(false);
             } else {
+                // Ensure subjectButtons array is initialized to hold 3 buttons at max for the page
+                JButton[] subjectButtons = new JButton[3];
                 int startIndex = (page - 1) * 3;
                 int endIndex = Math.min(startIndex + 3, nonEmptyFaecher.size());
 
                 for (int i = startIndex; i < endIndex; i++) {
                     Fach fach = nonEmptyFaecher.get(i);
                     String fachName = fach.getBeschreibung();
+                    System.out.println("Creating button for subject: " + fachName); // Debug
 
                     boolean isClickable = isFachAccessible(fach);
                     String buttonLabel = fachName;
-                    JLabel timeLabel = null;
 
-                    if (!isClickable) {
-                        // Berechne die verbleibende Zeit bis zur Verfügbarkeit
-                        Date lastAccess = fach.getGelerntAm();
-                        LocalDateTime lastAccessTime = Instant.ofEpochMilli(lastAccess.getTime())
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDateTime();
+                    // Commented out the part related to the timeLabel
+                    // JLabel timeLabel = null;
+                    // if (!isClickable) {
+                    //     Date lastAccess = fach.getGelerntAm();
+                    //     LocalDateTime lastAccessTime = Instant.ofEpochMilli(lastAccess.getTime())
+                    //             .atZone(ZoneId.systemDefault())
+                    //             .toLocalDateTime();
 
-                        long hoursLeft = 24 - Duration.between(lastAccessTime, LocalDateTime.now()).toHours();
-                        timeLabel = new JLabel("verfügbar in " + hoursLeft + " Std.");
-                        timeLabel.setFont(new Font("Roboto", Font.PLAIN, 12)); // Kleinere Schrift
-                        timeLabel.setForeground(Color.white); // Textfarbe
-                        timeLabel.setBounds(xOffset, y + buttonHeight, buttonWidth, 20); // Position unter dem Button
-                        add(timeLabel);  // Label unter dem Button hinzufügen
-                    }
+                    //     long hoursLeft = 24 - Duration.between(lastAccessTime, LocalDateTime.now()).toHours();
+                    //     timeLabel = new JLabel("verfügbar in " + hoursLeft + " Std.");
+                    //     timeLabel.setFont(new Font("Roboto", Font.PLAIN, 12));
+                    //     timeLabel.setForeground(Color.white);
+                    //     timeLabel.setBounds(xOffset, y + buttonHeight, buttonWidth, 20);
+                    //     add(timeLabel);
+                    // }
 
+                    // Initialize the button and set its bounds
                     subjectButtons[i - startIndex] = createSubjectButton(buttonLabel, fach.getNummer(), isClickable);
                     subjectButtons[i - startIndex].setBounds(xOffset, y, buttonWidth, buttonHeight);
+                    System.out.println("Button created: " + subjectButtons[i - startIndex].getText()); // Debug
                     add(subjectButtons[i - startIndex]);
 
                     xOffset += buttonWidth + buttonSpacing;
                 }
-
 
                 leftArrow.setEnabled(page > 1);
                 rightArrow.setEnabled(endIndex < nonEmptyFaecher.size());
             }
         }
 
-        revalidate();
-        repaint();
+        revalidate(); // After adding all components
+        repaint();    // After adding all components
     }
+
+
+
     private boolean isFachAccessible(Fach fach) {
 //        LocalDate localDate = LocalDate.of(2025, 1, 1);
 //        Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());

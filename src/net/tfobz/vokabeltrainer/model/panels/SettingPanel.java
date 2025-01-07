@@ -18,7 +18,7 @@ public class SettingPanel extends JPanel {
     Color lightGreen = new Color(58, 78, 66);
     Color creeme = new Color(255, 230, 169);
     Color lightBrown = new Color(222, 170, 121);
-    Color darkBlue =new Color(39, 85, 107);
+    Color darkBlue = new Color(39, 85, 107);
 
     public SettingPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -67,33 +67,92 @@ public class SettingPanel extends JPanel {
                 // Get the selected file
                 File selectedFile = fileChooser.getSelectedFile();
 
-                // Fetch all Lernkarteien from the database
-                ArrayList<Lernkartei> lernkarteienList = (ArrayList<Lernkartei>) VokabeltrainerDB.getLernkarteien();
+                try {
+                    // Fetch all Lernkarteien from the database
+                    ArrayList<Lernkartei> lernkarteienList = (ArrayList<Lernkartei>) VokabeltrainerDB.getLernkarteien();
 
-                // If there are Lernkarteien, display them in an option dialog
-                if (lernkarteienList != null && !lernkarteienList.isEmpty()) {
-                    String[] options = new String[lernkarteienList.size()];
+                    // If there are Lernkarteien, display them in an option dialog
+                    if (lernkarteienList != null && !lernkarteienList.isEmpty()) {
+                        String[] options = new String[lernkarteienList.size()];
 
-                    for (int i = 0; i < lernkarteienList.size(); i++) {
-                        options[i] = lernkarteienList.get(i).toString();
-                    }
+                        for (int i = 0; i < lernkarteienList.size(); i++) {
+                            options[i] = lernkarteienList.get(i).toString();
+                        }
 
-                    // Show option dialog to select Lernkartei
-                    int selectedIndex = JOptionPane.showOptionDialog(null, "Select the Lernkartei:", "Lernkartei Selection",
-                            JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+                        // Show option dialog to select Lernkartei
+                        int selectedIndex = JOptionPane.showOptionDialog(
+                                null,
+                                "!Warning! All the Fächer and Karten of the chosen Lernkartei will be deleted befor the import!\nChoose Lernkartei:",
+                                "Lernkartei Selection",
+                                JOptionPane.DEFAULT_OPTION,
+                                JOptionPane.WARNING_MESSAGE,
+                                null,
+                                options,
+                                options[0]
+                        );
 
-                    VokabeltrainerDB.importierenKarten(selectedIndex, selectedFile.getAbsolutePath());
-                    if (selectedIndex != -1) {
-                        Lernkartei selectedLernkartei = lernkarteienList.get(selectedIndex); // Get the selected Lernkartei object
-                        int lernkarteiId = selectedLernkartei.getNummer();
+                        if (selectedIndex != -1) {
+                            int confirm = JOptionPane.showConfirmDialog(
+                                    null,
+                                    "Are you sure you want to proceed? This action cannot be undone.",
+                                    "Confirm Deletion",
+                                    JOptionPane.OK_CANCEL_OPTION,
+                                    JOptionPane.WARNING_MESSAGE
+                            );
 
-                        // Import Karten
-                        VokabeltrainerDB.importierenKarten(lernkarteiId, selectedFile.getAbsolutePath());
+                            if (confirm == JOptionPane.OK_OPTION) {
+                                Lernkartei selectedLernkartei = lernkarteienList.get(selectedIndex);
+                                int lernkarteiId = selectedLernkartei.getNummer();
+                                System.out.println("Selected Lernkartei ID: " + lernkarteiId);
+
+                                // Import Karten
+                                int importResult = VokabeltrainerDB.importierenKarten(lernkarteiId, selectedFile.getAbsolutePath());
+                                switch (importResult) {
+                                    case -1:
+                                        JOptionPane.showMessageDialog(
+                                                null,
+                                                "Import failed due to an import error.",
+                                                "Import Error",
+                                                JOptionPane.ERROR_MESSAGE
+                                        );
+                                        break;
+                                    case -2:
+                                        JOptionPane.showMessageDialog(
+                                                null,
+                                                "The specified file was not found.",
+                                                "File Not Found",
+                                                JOptionPane.ERROR_MESSAGE
+                                        );
+                                        break;
+                                    case -3:
+                                        JOptionPane.showMessageDialog(
+                                                null,
+                                                "The selected Lernkartei does not exist.",
+                                                "Lernkartei Not Found",
+                                                JOptionPane.ERROR_MESSAGE
+                                        );
+                                        break;
+                                    default:
+                                        JOptionPane.showMessageDialog(
+                                                null,
+                                                "Import successful!",
+                                                "Success",
+                                                JOptionPane.INFORMATION_MESSAGE
+                                        );
+                                        break;
+                                }
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Import cancelled.");
+                            }
+                        } else {
+                            JOptionPane.showMessageDialog(null, "No Lernkartei selected.");
+                        }
                     } else {
-                        JOptionPane.showMessageDialog(null, "No Lernkartei selected.");
+                        JOptionPane.showMessageDialog(null, "No Lernkartei available.");
                     }
-                } else {
-                    JOptionPane.showMessageDialog(null, "No Lernkartei available.");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "An error occurred during the import process: " + ex.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "File selection canceled.");
@@ -124,80 +183,86 @@ public class SettingPanel extends JPanel {
             if (result == JFileChooser.APPROVE_OPTION) {
                 File exportFile = fileChooser.getSelectedFile();
 
-                // Fetch Lernkarteien
-                ArrayList<Lernkartei> lernkarteienList = (ArrayList<Lernkartei>) VokabeltrainerDB.getLernkarteien();
-                if (lernkarteienList != null && !lernkarteienList.isEmpty()) {
-                    String[] options = new String[lernkarteienList.size()];
+                try {
+                    // Fetch Lernkarteien
+                    ArrayList<Lernkartei> lernkarteienList = (ArrayList<Lernkartei>) VokabeltrainerDB.getLernkarteien();
+                    if (lernkarteienList != null && !lernkarteienList.isEmpty()) {
+                        String[] options = new String[lernkarteienList.size()];
 
-                    for (int i = 0; i < lernkarteienList.size(); i++) {
-                        options[i] = lernkarteienList.get(i).toString();
-                    }
+                        for (int i = 0; i < lernkarteienList.size(); i++) {
+                            options[i] = lernkarteienList.get(i).toString();
+                        }
 
-                    // Show option dialog to select Lernkartei
-                    int selectedIndex = JOptionPane.showOptionDialog(
-                            null,
-                            "Select the Lernkartei for export:",
-                            "Lernkartei Selection",
-                            JOptionPane.DEFAULT_OPTION,
-                            JOptionPane.INFORMATION_MESSAGE,
-                            null,
-                            options,
-                            options[0]
-                    );
-
-                    if (selectedIndex != -1) {
-                        Lernkartei selectedLernkartei = lernkarteienList.get(selectedIndex);
-                        int lernkarteiId = selectedLernkartei.getNummer();
-
-                        // Ask whether to include "Fächer" in export
-                        int includeFaechern = JOptionPane.showConfirmDialog(
+                        // Show option dialog to select Lernkartei
+                        int selectedIndex = JOptionPane.showOptionDialog(
                                 null,
-                                "Include Fächer in the export?",
-                                "Export Option",
-                                JOptionPane.YES_NO_OPTION
+                                "Select the Lernkartei for export:",
+                                "Lernkartei Selection",
+                                JOptionPane.DEFAULT_OPTION,
+                                JOptionPane.INFORMATION_MESSAGE,
+                                null,
+                                options,
+                                options[0]
                         );
 
-                        boolean mitFaechern = (includeFaechern == JOptionPane.YES_OPTION);
+                        if (selectedIndex != -1) {
+                            Lernkartei selectedLernkartei = lernkarteienList.get(selectedIndex);
+                            int lernkarteiId = selectedLernkartei.getNummer();
 
-                        // Perform export
-                        int exportResult = VokabeltrainerDB.exportierenKarten(
-                                lernkarteiId,
-                                exportFile.getAbsolutePath(),
-                                mitFaechern
-                        );
+                            // Ask whether to include "Fächer" in export
+                            int includeFaechern = JOptionPane.showConfirmDialog(
+                                    null,
+                                    "Include Fächer in the export?",
+                                    "Export Option",
+                                    JOptionPane.YES_NO_OPTION
+                            );
 
-                        if (exportResult == 0) {
-                            JOptionPane.showMessageDialog(
-                                    null,
-                                    "Export successful!",
-                                    "Success",
-                                    JOptionPane.INFORMATION_MESSAGE
+                            boolean mitFaechern = (includeFaechern == JOptionPane.YES_OPTION);
+
+                            // Perform export
+                            int exportResult = VokabeltrainerDB.exportierenKarten(
+                                    lernkarteiId,
+                                    exportFile.getAbsolutePath(),
+                                    mitFaechern
                             );
-                        } else if (exportResult == -3) {
-                            JOptionPane.showMessageDialog(
-                                    null,
-                                    "Selected Lernkartei does not exist.",
-                                    "Error",
-                                    JOptionPane.ERROR_MESSAGE
-                            );
+
+                            if (exportResult == 0) {
+                                JOptionPane.showMessageDialog(
+                                        null,
+                                        "Export successful!",
+                                        "Success",
+                                        JOptionPane.INFORMATION_MESSAGE
+                                );
+                            } else if (exportResult == -3) {
+                                JOptionPane.showMessageDialog(
+                                        null,
+                                        "Selected Lernkartei does not exist.",
+                                        "Error",
+                                        JOptionPane.ERROR_MESSAGE
+                                );
+                            } else {
+                                JOptionPane.showMessageDialog(
+                                        null,
+                                        "Export failed. Please try again.",
+                                        "Error",
+                                        JOptionPane.ERROR_MESSAGE
+                                );
+                            }
                         } else {
-                            JOptionPane.showMessageDialog(
-                                    null,
-                                    "Export failed. Please try again.",
-                                    "Error",
-                                    JOptionPane.ERROR_MESSAGE
-                            );
+                            JOptionPane.showMessageDialog(null, "No Lernkartei selected.");
                         }
                     } else {
-                        JOptionPane.showMessageDialog(null, "No Lernkartei selected.");
+                        JOptionPane.showMessageDialog(null, "No Lernkartei available.");
                     }
-                } else {
-                    JOptionPane.showMessageDialog(null, "No Lernkartei available.");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "An error occurred during the export process: " + ex.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "Export canceled.");
             }
         });
+
 
         add(exportButton);
 
