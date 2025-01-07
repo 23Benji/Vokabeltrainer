@@ -102,6 +102,7 @@ public class SettingPanel extends JPanel {
 
                             if (confirm == JOptionPane.OK_OPTION) {
                                 Lernkartei selectedLernkartei = lernkarteienList.get(selectedIndex);
+                                System.out.println("Selected index id: " + selectedIndex);
                                 int lernkarteiId = selectedLernkartei.getNummer();
                                 System.out.println("Selected Lernkartei ID: " + lernkarteiId);
 

@@ -2,11 +2,9 @@ package net.tfobz.vokabeltrainer.model.panels;
 
 import net.tfobz.vokabeltrainer.model.Lernkartei;
 import net.tfobz.vokabeltrainer.model.MainFrame;
-import net.tfobz.vokabeltrainer.model.VokabeltrainerDB;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
 public class HomePanel extends JPanel {
 
@@ -14,13 +12,9 @@ public class HomePanel extends JPanel {
     private JButton upButton, downButton, startButton, modifyButton, settingsButton;
     private Image backgroundImage;
     private MainFrame mainFrame;
-    private String[] languageLabels; // Array for preloaded labels
 
     public HomePanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
-
-        // Preload all language labels into an array
-        preloadLanguageLabels();
 
         // Panel properties
         setLayout(null); // No layout manager
@@ -45,7 +39,7 @@ public class HomePanel extends JPanel {
         add(upButton);
 
         // Language label
-        languageLabel = new JLabel(languageLabels[mainFrame.getLernKarteiNummer() - 1], JLabel.CENTER);
+        languageLabel = new JLabel(mainFrame.getLanguageLabels()[mainFrame.getCurrentLernkarteiIndex()], JLabel.CENTER);
         languageLabel.setFont(new Font("Roboto", Font.BOLD, 30));
         languageLabel.setOpaque(true);
         languageLabel.setBackground(new Color(177, 194, 158));
@@ -80,43 +74,31 @@ public class HomePanel extends JPanel {
     }
 
     /**
-     * Preload all language labels into an array for efficiency.
-     */
-    private void preloadLanguageLabels() {
-        List<Lernkartei> lernkarteien = VokabeltrainerDB.getLernkarteien();
-        languageLabels = new String[lernkarteien.size()];
-        for (int i = 0; i < lernkarteien.size(); i++) {
-            languageLabels[i] = lernkarteien.get(i).toString();
-        }
-    }
-
-    /**
-     * Move Up in the label list.
+     * Move Up in the list of Lernkarteien.
      */
     private void moveUp() {
-        mainFrame.setLernKarteiNummer(mainFrame.getLernKarteiNummer() + 1);
-        if (mainFrame.getLernKarteiNummer() > languageLabels.length) {
-            mainFrame.setLernKarteiNummer(1); // Loop back to the first
-        }
-        updateLanguageLabel();
+        mainFrame.moveToNextLernkartei();
+        updateCurrentLernkartei();
     }
 
     /**
-     * Move Down in the label list.
+     * Move Down in the list of Lernkarteien.
      */
     private void moveDown() {
-        mainFrame.setLernKarteiNummer(mainFrame.getLernKarteiNummer() - 1);
-        if (mainFrame.getLernKarteiNummer() < 1) {
-            mainFrame.setLernKarteiNummer(languageLabels.length); // Loop back to the last
-        }
-        updateLanguageLabel();
+        mainFrame.moveToPreviousLernkartei();
+        updateCurrentLernkartei();
     }
 
     /**
-     * Update the language label based on the current index.
+     * Update the currently selected Lernkartei and refresh the label.
      */
-    private void updateLanguageLabel() {
-        languageLabel.setText(languageLabels[mainFrame.getLernKarteiNummer() - 1]);
+    private void updateCurrentLernkartei() {
+        int currentIndex = mainFrame.getCurrentLernkarteiIndex();
+        Lernkartei currentLernkartei = mainFrame.getCurrentLernkartei();
+        languageLabel.setText(mainFrame.getLanguageLabels()[currentIndex]);
+
+        System.out.println("Current Lernkartei: " + currentLernkartei.getBeschreibung());
+        System.out.println("Lernkartei Number: " + currentLernkartei.getNummer());
     }
 
     @Override
@@ -124,6 +106,4 @@ public class HomePanel extends JPanel {
         super.paintComponent(g);
         g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
     }
-
-
 }

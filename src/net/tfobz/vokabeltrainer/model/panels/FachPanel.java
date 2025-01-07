@@ -96,7 +96,7 @@ public class FachPanel extends JPanel {
         int buttonWidth = 175, buttonHeight = 120;
         int buttonSpacing = 20;
 
-        List<Fach> kartenForFach = VokabeltrainerDB.getFaecher(mainFrame.getLernKarteiNummer());
+        List<Fach> kartenForFach = VokabeltrainerDB.getFaecher(mainFrame.getCurrentLernkartei().getNummer());
         System.out.println("Fetched subjects: " + kartenForFach); // Debug
 
         if (kartenForFach == null || kartenForFach.isEmpty()) {
@@ -205,7 +205,7 @@ public class FachPanel extends JPanel {
         // Title Panel
         JPanel titlePanel = new JPanel();
         titlePanel.setBackground(new Color(101, 146, 135)); // Deep teal
-        JLabel titleLabel = new JLabel("Lernkartei: " + VokabeltrainerDB.getLernkartei(mainFrame.getLernKarteiNummer()).toString());
+        JLabel titleLabel = new JLabel("Lernkartei: " + mainFrame.getCurrentLernkartei().toString(), SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         titleLabel.setForeground(Color.WHITE); // White text for clarity
         titlePanel.add(titleLabel);

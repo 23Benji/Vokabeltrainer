@@ -80,7 +80,7 @@ public class QuizPanel extends JPanel {
             return;
         }
 
-        currentCard = VokabeltrainerDB.getZufaelligeKarte(mainFrame.getLernKarteiNummer(), mainFrame.getFachNummer());
+        currentCard = VokabeltrainerDB.getZufaelligeKarte(mainFrame.getCurrentLernkartei().getNummer(), mainFrame.getFachNummer());
         if (currentCard != null) {
             if (currentCard.getRichtung()) {
                 wordLabel.setText(currentCard.getWortEins());
@@ -161,7 +161,7 @@ public class QuizPanel extends JPanel {
                     result = VokabeltrainerDB.setKarteRichtig(currentCard); // Mark as correct in DB
 
                     if (result == -2) {
-                        VokabeltrainerDB.hinzufuegenFach(mainFrame.getLernKarteiNummer(), new Fach());
+                        VokabeltrainerDB.hinzufuegenFach(mainFrame.getCurrentLernkartei().getNummer(), new Fach());
                     } else if (result == -1) {
                         JOptionPane.showMessageDialog(this, "Database error occurred while saving the card.", "Error", JOptionPane.ERROR_MESSAGE);
                         return;
