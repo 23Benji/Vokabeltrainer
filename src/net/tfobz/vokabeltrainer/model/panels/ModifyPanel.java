@@ -4,7 +4,6 @@ import net.tfobz.vokabeltrainer.model.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Date;
 
 public class ModifyPanel extends JPanel {
@@ -14,28 +13,74 @@ public class ModifyPanel extends JPanel {
         this.mainFrame = mainFrame;
 
         // Set layout and background
-        setLayout(new GridLayout(4, 2, 20, 20));  // Increased padding between buttons
+        setLayout(null);
         setBackground(new Color(58, 78, 66));
 
-        // Create buttons with smaller font and custom colors
-        JButton addFachButton = createButton("Add Fach");
-        JButton addLernkarteiButton = createButton("Add Lernkartei");
-        JButton addKarteButton = createButton("Add Karte");
-        JButton removeFachButton = createButton("Remove Fach");
-        JButton removeLernkarteiButton = createButton("Remove Lernkartei");
-        JButton removeKarteButton = createButton("Remove Karte");
+        // Create buttons
+        JButton addLernkarteiButton = createButton("Add");
+        JButton addFachButton = createButton("Add");
+        JButton addKarteButton = createButton("Add");
+        JButton removeLernkarteiButton = createButton("Remove");
+        JButton removeFachButton = createButton("Remove");
+        JButton removeKarteButton = createButton("Remove");
 
         // Create home button with icon
         JButton homeButton = createHomeButton();
 
-        // Add buttons to panel
-        add(addFachButton);
+        // Create labels
+        JLabel ModifyLabel = createLabel("Modify");
+        ModifyLabel.setBounds(250, 50, 250, 70);
+        ModifyLabel.setFont(new Font("Verdana", Font.BOLD, 64));
+        JLabel lernkarteiLabel = createLabel("Lernkartei");
+        JLabel fachLabel = createLabel("Fach");
+        JLabel karteLabel = createLabel("Karte");
+
+        // Calculate centered positions
+        int panelWidth = 800;
+        int panelHeight = 600;
+
+        int buttonWidth = 160;
+        int buttonHeight = 60;
+        int labelHeight = 30;
+        int verticalSpacing = 20;
+
+        int columnSpacing = 80;
+        int firstColumnX = (panelWidth - (3 * buttonWidth + 2 * columnSpacing)) / 2;
+        int secondColumnX = firstColumnX + buttonWidth + columnSpacing;
+        int thirdColumnX = secondColumnX + buttonWidth + columnSpacing;
+
+        int topY = (panelHeight - (2 * buttonHeight + labelHeight + verticalSpacing)) / 2;
+
+        // Set bounds for home button
+        homeButton.setBounds(10, 10, 50, 50); // Adjusted for size and placement
+
+        // Set bounds for labels
+        lernkarteiLabel.setBounds(firstColumnX, topY, buttonWidth, labelHeight);
+        fachLabel.setBounds(secondColumnX, topY, buttonWidth, labelHeight);
+        karteLabel.setBounds(thirdColumnX, topY, buttonWidth, labelHeight);
+
+        // Set bounds for buttons
+        addLernkarteiButton.setBounds(firstColumnX, topY + labelHeight + verticalSpacing, buttonWidth, buttonHeight);
+        removeLernkarteiButton.setBounds(firstColumnX, topY + labelHeight + buttonHeight + 2 * verticalSpacing, buttonWidth, buttonHeight);
+
+        addFachButton.setBounds(secondColumnX, topY + labelHeight + verticalSpacing, buttonWidth, buttonHeight);
+        removeFachButton.setBounds(secondColumnX, topY + labelHeight + buttonHeight + 2 * verticalSpacing, buttonWidth, buttonHeight);
+
+        addKarteButton.setBounds(thirdColumnX, topY + labelHeight + verticalSpacing, buttonWidth, buttonHeight);
+        removeKarteButton.setBounds(thirdColumnX, topY + labelHeight + buttonHeight + 2 * verticalSpacing, buttonWidth, buttonHeight);
+
+        // Add components to panel
+        add(ModifyLabel);
+        add(homeButton);
+        add(lernkarteiLabel);
+        add(fachLabel);
+        add(karteLabel);
         add(addLernkarteiButton);
-        add(addKarteButton);
-        add(removeFachButton);
         add(removeLernkarteiButton);
+        add(addFachButton);
+        add(removeFachButton);
+        add(addKarteButton);
         add(removeKarteButton);
-        add(homeButton); // Add home button
 
         // Action Listeners
         addFachButton.addActionListener(e -> showAddFachDialog());
@@ -47,36 +92,33 @@ public class ModifyPanel extends JPanel {
         homeButton.addActionListener(e -> navigateHome());
     }
 
+    // Helper method to create buttons with consistent style
     private JButton createButton(String text) {
         JButton button = new JButton(text);
-
-        // Set the font and colors
-        button.setFont(new Font("Arial", Font.PLAIN, 14));
-        button.setBackground(new Color(255, 230, 169));  // Button background color
-        button.setForeground(new Color(39, 85, 107));  // Button text color
+        button.setFont(new Font("Arial", Font.PLAIN, 18));
+        button.setBackground(new Color(101, 146, 135));
+        button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-
-        // Set the preferred size
-        button.setPreferredSize(new Dimension(100, 40));  // Button size
-
-        // Add padding around the button (top, left, bottom, right)
-        button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(39, 85, 107), 2), // Outer border
-                BorderFactory.createEmptyBorder(10, 20, 10, 20)  // Padding: top, left, bottom, right
-        ));
-
+        button.setBorder(BorderFactory.createLineBorder(new Color(39, 85, 107), 2));
         return button;
     }
 
+    // Helper method to create labels with consistent style
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Arial", Font.BOLD, 25));
+        label.setForeground(Color.WHITE);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        return label;
+    }
 
-    // Create home button with custom icon
+    // Helper method to create the home button with an icon
     private JButton createHomeButton() {
-        JButton homeButton = new JButton(new ImageIcon("icons/home.png"));
-        homeButton.setPreferredSize(new Dimension(50, 50)); // Adjust button size
-        homeButton.setBackground(new Color(255, 255, 255));
-        homeButton.setBorder(BorderFactory.createEmptyBorder());
-        homeButton.setFocusPainted(false);
-        return homeButton;
+        JButton button = new JButton(new ImageIcon("icons/home.png"));
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder());
+        button.setContentAreaFilled(false);
+        return button;
     }
 
     // --- Home Navigation ---
