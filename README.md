@@ -26,17 +26,16 @@ This is a vocabulary trainer application built with Java. It is designed to help
 
 2. **Navigate to the project directory:**
    ```bash
-   cd Vokabeltrainer
+   cd Vokabeltrainer/src
    ```
 
-3. **Compile the Java files:**
+3. **Compile the Programm:**
    ```bash
-   javac -d bin src/*.java
+   javca Main.java
    ```
-
-4. **Run the application:**
+3. **Run the application:**
    ```bash
-   java -cp bin Main
+   java Main
    ```
 
 ## Usage
