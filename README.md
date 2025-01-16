@@ -2,7 +2,7 @@
 
 This is a vocabulary trainer application built with Java. It is designed to help users learn and practice vocabulary in an interactive and engaging way. The Vokabeltrainer allows users to create vocabulary sets, test themselves, and track their progress.
 
-![Screenshot](img/screenshot.png)
+![Screenshot](screenShots/Screen1.png)
 
 ## Features
 
