@@ -10,7 +10,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://S:/Class/2024-25/Informatik/Vokabeltrainer/RohdateienJava/RohdateienJava/Rohdateien/lib/hsqldb.jar!/" />
+          <root url="jar://S:/Class/2024-25/Informatik/hsqldb.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
